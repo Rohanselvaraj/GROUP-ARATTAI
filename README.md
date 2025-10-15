@@ -9,7 +9,7 @@ With Group-Arraittai, multiple users can join a room, send and receive messages 
 
 ## 🌐 Live Demo
 
-🎯 **Project Link:** [https://group-arrattai.netlify.app/](https://group-arattai.netlify.app/)
+🎯 **Project Link:** [https://group-arattai.netlify.app/](https://group-arattai.netlify.app/)
 
 - **Frontend:** Hosted on **Netlify**  
 - **Backend:** Hosted on **Render**
