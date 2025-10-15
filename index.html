@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group Chat</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:," />
+  <script>
+    (function(){
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Group Chat</div>
+    <div class="actions">
+      <button id="themeToggle" title="Toggle theme">🌓</button>
+      <button id="copyInvite" title="Copy invite link">🔗</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="authPanel" class="panel">
+      <h2>Join or Create a Room</h2>
+      <div class="row">
+        <label>Display name</label>
+        <input id="displayName" placeholder="Your name" />
+      </div>
+      <div class="row">
+        <label>Room name (new) or code (existing)</label>
+        <input id="roomInput" placeholder="room-name OR ABC123" />
+      </div>
+      <div class="row">
+        <button id="createRoomBtn">Create by name</button>
+        <button id="joinRoomBtn" class="primary">Join by code/name</button>
+      </div>
+      <p id="authError" class="error"></p>
+    </section>
+
+    <section id="chatPanel" class="panel hidden">
+      <div class="chat-header">
+        <div>
+          <div class="room-title">
+            <span id="roomTitle">Room</span>
+            <span class="code" id="roomCode"></span>
+          </div>
+          <div class="subtitle"><span id="membersCount">0</span> online</div>
+        </div>
+        <div class="call-controls">
+          <button id="leaveRoomBtn" class="warn">Leave Chat</button>
+          <button id="toggleMembersBtn" class="outline" title="Show/Hide Members">👥 Members</button>
+          <button id="toggleCallBtn" class="outline" title="Show/Hide Call">🎥 Call</button>
+          <button id="startCallBtn">Start Call</button>
+          <button id="leaveCallBtn" class="warn" disabled>Leave Call</button>
+          <button id="toggleMicBtn" disabled>🎤</button>
+          <button id="toggleCamBtn" disabled>📷</button>
+          <button id="shareScreenBtn" disabled>🖥️</button>
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <aside class="sidebar">
+          <h3>Members</h3>
+          <ul id="memberList"></ul>
+        </aside>
+        <section class="messages">
+          <ul id="messageList"></ul>
+          <div id="typing" class="typing hidden">Someone is typing…</div>
+          <div id="uploadStatus" class="hidden">Uploading: <span id="uploadPct">0%</span></div>
+          <div id="uploadBar" class="hidden"><span id="uploadBarFill"></span></div>
+          <form id="composer" class="composer">
+            <input id="messageInput" placeholder="Write a message" autocomplete="off" />
+            <input type="file" id="imageInput" accept="image/*" hidden />
+            <button type="button" id="imageBtn" title="Send image">🖼️</button>
+            <button type="submit" class="primary">Send</button>
+          </form>
+        </section>
+        <section class="call" id="callPanel">
+          <div class="video-grid" id="videoGrid"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <template id="messageTpl">
+    <li class="message">
+      <div class="avatar" data-color=""></div>
+      <div class="bubble">
+        <div class="meta"><span class="author"></span><span class="time"></span></div>
+        <div class="content"></div>
+      </div>
+    </li>
+  </template>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
