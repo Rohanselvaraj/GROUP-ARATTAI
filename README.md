@@ -64,5 +64,5 @@ It’s perfect for learning how backend and frontend communicate using events, s
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/group-arraittai.git
+git clone (https://github.com/Rohanselvaraj/GROUP-ARRAITTAI)
 cd group-arraittai
