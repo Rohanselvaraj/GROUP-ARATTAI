@@ -4,6 +4,10 @@
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
+// ===== BACKEND CONFIGURATION =====
+const BACKEND_URL = 'https://group-chart-2.onrender.com';
+// =================================
+
 const state = {
   socket: null,
   room: null, // { name, code }
@@ -13,6 +17,12 @@ const state = {
   streams: { local: null },
   inCall: false
 };
+
+function resolveImageUrl(u) {
+  if (!u) return u;
+  if (/^https?:\/\//i.test(u)) return u;
+  return `${BACKEND_URL}${u.startsWith('/') ? u : '/' + u}`;
+}
 
 function fmtTime(ts) {
   const d = new Date(ts);
@@ -67,7 +77,7 @@ function messageElement(msg) {
   }
   if (msg.imageUrl) {
     const img = document.createElement('img');
-    img.src = msg.imageUrl;
+    img.src = resolveImageUrl(msg.imageUrl);
     img.alt = 'image';
     content.appendChild(img);
   }
@@ -96,10 +106,28 @@ function currentCodeOrNameInput() {
 }
 
 function connectSocket() {
-  state.socket = io({ transports: ['websocket'] });
+  // Connect to Render backend
+  state.socket = io(BACKEND_URL, { 
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 5
+  });
 
   state.socket.on('connect', () => {
-    console.log('connected', state.socket.id);
+    console.log('connected to backend:', state.socket.id);
+    toast('Connected to server');
+  });
+
+  state.socket.on('connect_error', (error) => {
+    console.error('Connection error:', error);
+    toast('Connection error - retrying...');
+  });
+
+  state.socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+    toast('Disconnected from server');
   });
 
   state.socket.on('room:joined', ({ name, code, messages }) => {
@@ -199,8 +227,7 @@ function leaveRoom() {
   $('#roomTitle').textContent = 'Room';
   $('#roomCode').textContent = '';
   // Clear typing and upload indicators
-  typingUsers = new Set();
-  updateTyping();
+  $('#typing').classList.add('hidden');
   $('#uploadStatus').classList.add('hidden');
   $('#uploadBar').classList.add('hidden');
 }
@@ -220,7 +247,7 @@ function onTyping() {
 }
 
 async function uploadImage(file) {
-  // Use XHR so we can show progress
+  // Use XHR so we can show progress - now points to Render backend
   const fd = new FormData();
   fd.append('image', file);
   const xhr = new XMLHttpRequest();
@@ -234,7 +261,7 @@ async function uploadImage(file) {
   pctEl.textContent = '0%';
 
   const url = await new Promise((resolve, reject) => {
-    xhr.open('POST', '/api/upload');
+    xhr.open('POST', `${BACKEND_URL}/api/upload`);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
         const pct = Math.round((e.loaded / e.total) * 100);
@@ -246,7 +273,7 @@ async function uploadImage(file) {
       try {
         const res = JSON.parse(xhr.responseText || '{}');
         if (xhr.status >= 200 && xhr.status < 300 && res.url) {
-          resolve(res.url);
+          resolve(resolveImageUrl(res.url));
         } else {
           reject(new Error('Upload failed'));
         }
